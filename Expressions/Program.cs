@@ -64,6 +64,28 @@ namespace Expressions
 
             var rule = new Rule<User>();
             rule.BindRuleTo(u => u.Username);
+
+
+
+
+              //Now for the hard way. We will build the same Expression (actually an Expression Tree) one step at a time.v
+               //ahora la manera dificil . construiremos algunas epresiones (actualemte un arbol de expresion) paso a paso por una unica ves  
+
+            // The parameter, c
+                var parm = Expression.Parameter(typeof(City), "c"); 
+                // c.Name
+                var propName = Expression.Property(parm, "Name");       
+                // The constant, "P"
+                var constP = Expression.Constant("P");
+                // c.Name.StartsWith("P")
+                var nameStartsWith = Expression.Call(
+                    propName, 
+                    typeof(string).GetMethod("StartsWith", new[] { typeof(string) }),
+                    constP );
+                var exprName = Expression.Lambda<Func<City, bool>>(nameStartsWith, parm);
+
+
+                Expression<Func<City, bool>> where = c => c.Name.StartsWith("P");
         }
     }
 
@@ -99,6 +121,25 @@ namespace Expressions
         //    return this;
         //}
     }
+
+
+    //public class query {
+    //    static IEnumerable<City> GetWhere(LinqDemoEntities context, Expression<Func<City, bool>> where, int numDesired)
+    //    {
+    //        return context.Cities
+    //            .Where(where)
+    //            .OrderByDescending(c => c.Population)
+    //            .Take(numDesired);
+
+    //        //   SELECT TOP (15) 
+    //        //   [Extent1].[Name] AS [Name], 
+    //        //   [Extent1].[StateCode] AS [StateCode], 
+    //        //   [Extent1].[Population] AS [Population]
+    //        //   FROM [dbo].[Cities] AS [Extent1]
+    //        //   WHERE [Extent1].[Name] LIKE N'P%'
+    //        //   ORDER BY [Extent1].[Population] DESC
+    //    }
+    //}
 
 
     /*
