@@ -65,7 +65,12 @@ namespace Expressions
             var rule = new Rule<User>();
             rule.BindRuleTo(u => u.Username);
 
+            var q = new query();
+            var str = q.InnerQuery<User>(u => u.Username == "eduardo");
 
+
+            string str2 = "Test";
+            query.PrintProperty(() => str2.Length);
 
 
               //Now for the hard way. We will build the same Expression (actually an Expression Tree) one step at a time.v
@@ -120,6 +125,46 @@ namespace Expressions
         //    this.PropertyName = ExpressionUtil.GetPropertyNameFromExpression(expression);
         //    return this;
         //}
+    }
+    public class query {
+
+        public string InnerQuery<U>(Expression<Func< U,bool>> e)
+        {
+            var tName = typeof(U).Name;
+            BinaryExpression expression = ((BinaryExpression)e.Body);
+            string propertyName = ((MemberExpression)expression.Left).Member.Name;
+            Expression value = expression.Right;
+            String strVlue = string.Empty;
+            if (value.Type == typeof(String))
+            {
+                strVlue = Expression.Lambda<Func<String>>(value).Compile()();
+                //Console.WriteLine("String: {0}", str);
+            }
+            var finalQuery = string.Format("SELECT {0}  FROM {1} WHERE {2} = '{3}' ",propertyName ,tName,propertyName,strVlue);
+            return finalQuery;
+        }
+
+        public static void PrintProperty<T>(Expression<Func<T>> e)
+        {
+            var member = (MemberExpression)e.Body;
+            string propertyName = member.Member.Name;
+            T value = e.Compile()();
+            Console.WriteLine("{0} : {1}", propertyName, value);
+        }
+        public  string GetName(Expression<Func<object>> exp)
+        {
+            MemberExpression body = exp.Body as MemberExpression;
+
+            if (body == null)
+            {
+                UnaryExpression ubody = (UnaryExpression)exp.Body;
+                body = ubody.Operand as MemberExpression;
+            }
+
+            return body.Member.Name;
+        }
+    
+
     }
 
 
