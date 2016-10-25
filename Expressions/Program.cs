@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -68,6 +70,10 @@ namespace Expressions
             var q = new query();
             var str = q.InnerQuery<User>(u => u.Username == "eduardo");
 
+            var ciudad = new City() { description = "rosario central", Name = "rosario ", Location = "santa fe" };
+            var m = Mapper.Map<City, CityViewModel>(ciudad);
+
+            var h = q.getHash<City>();
 
             string str2 = "Test";
             query.PrintProperty(() => str2.Length);
@@ -163,8 +169,60 @@ namespace Expressions
 
             return body.Member.Name;
         }
+        public Hashtable getHash<T>() where T : new()
+        {
+            Type businessEntityType = typeof(T);
+            var hashtable = new Hashtable();
+            PropertyInfo[] properties = businessEntityType.GetProperties();
+            foreach (PropertyInfo info in properties)
+            {
+                hashtable[info.Name.ToUpper()] = info;
+            }
+            return hashtable;
+          
+        }
+        
+ 
+
+
     
 
+    }
+
+    //tarea : hacer un mapper<origen,destino>(instanciaOrigen);
+    public class Mapper {
+
+        public static D Map<O,D>(O origen) where D: new() {
+            var o = origen;
+            Type EntityTypeO = typeof(O);
+           // Type EntityTypeD = typeof(D);
+            var hashtable = new Hashtable();
+            PropertyInfo[] properties = EntityTypeO.GetProperties();
+            foreach (PropertyInfo info in properties)//origen
+            {
+                hashtable[info.Name.ToUpper()] = info;
+            }
+            D newDestino = new D();
+
+            var props = origen.GetType().GetProperties();
+            foreach (var prop in props)//destino
+            {
+                var info = (PropertyInfo)hashtable[prop.Name.ToUpper()];
+                var value = prop.GetValue(origen, null);
+                //no deja porque no es el mismo tipo
+                //o sea q lo guardo en el hasttable
+                hashtable[prop.Name.ToUpper()] = value;
+              //  info.SetValue(newObject, value, null);
+            }
+            foreach (var prop in props)//destino
+            {
+                var value = hashtable[prop.Name.ToUpper()];
+                var propertyInfo = newDestino.GetType().GetProperty(prop.Name);
+                propertyInfo.SetValue(newDestino, value, null);
+            }
+            return newDestino;
+        }
+    
     }
 
 
